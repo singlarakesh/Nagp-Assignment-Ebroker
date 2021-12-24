@@ -43,7 +43,7 @@ public class EquityServiceTest {
 		Equity equity = new Equity(1, 300, 1);
 		Mockito.when(equityRepo.save(equity)).thenReturn(equity);
 		Equity actual = equityService.addEquity(equity);
-		Assertions.assertEquals(actual, equity);
+		Assertions.assertEquals(equity, actual);
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class EquityServiceTest {
 		List<Equity> expect = Arrays.asList(equity);
 		Mockito.when(equityRepo.findAll()).thenReturn(expect);
 		List<Equity> actual = equityService.getAllEquity();
-		Assertions.assertEquals(actual, expect);
+		Assertions.assertEquals(expect, actual);
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class EquityServiceTest {
 		Optional<Equity> equityOptional = Optional.of(equity);
 		Mockito.when(equityRepo.findById(1)).thenReturn(equityOptional);
 		Equity actual = equityService.getEquityById(1);
-		Assertions.assertEquals(actual, equityOptional.get());
+		Assertions.assertEquals(equityOptional.get(), actual);
 	}
 
 }

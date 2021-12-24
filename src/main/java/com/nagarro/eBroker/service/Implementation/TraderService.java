@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.nagarro.eBroker.handler.InsufficientFundsException;
 import com.nagarro.eBroker.handler.NotInServiceException;
 import com.nagarro.eBroker.handler.RecordNotFoundException;
 import com.nagarro.eBroker.model.Equity;
@@ -51,7 +52,7 @@ public class TraderService implements ITraderService {
 			if (pricePerQuantity < trader.getFunds()) {
 				return this.saveEquityForTrader(equity, trader, quantity, pricePerQuantity);
 			} else {
-				throw new RecordNotFoundException("Not Suffiecient fund");
+				throw new InsufficientFundsException("Not Suffiecient fund");
 			}
 		} else {
 			throw new RecordNotFoundException("No trader record exist for given id");

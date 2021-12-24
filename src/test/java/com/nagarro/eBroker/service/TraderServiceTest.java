@@ -20,6 +20,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.nagarro.eBroker.handler.InsufficientFundsException;
 import com.nagarro.eBroker.handler.NotInServiceException;
 import com.nagarro.eBroker.handler.RecordNotFoundException;
 import com.nagarro.eBroker.model.Equity;
@@ -39,8 +40,8 @@ public class TraderServiceTest {
 	@Mock
 	private EquityService equityService;
 
-	@Captor
-	ArgumentCaptor<Integer> captor;
+	final static String startTime = "09:00:00";
+	final static String endTime = "17:00:00";
 
 	@BeforeEach
 	public void setUp() {
@@ -89,7 +90,7 @@ public class TraderServiceTest {
 			Mockito.when(traderRepo.findById((long) 1)).thenReturn(traderOptional);
 			Equity equity = new Equity(4, 100, 1);
 			Mockito.when(equityService.getEquityById(4)).thenReturn(equity);
-			Assertions.assertThrows(RecordNotFoundException.class, () -> traderService.buyEquity((long) 1, 4));
+			Assertions.assertThrows(InsufficientFundsException.class, () -> traderService.buyEquity((long) 1, 4));
 		}
 	}
 
@@ -130,7 +131,6 @@ public class TraderServiceTest {
 			Mockito.when(traderRepo.save(trader)).thenReturn(expectedTrader);
 			Trader actualTrader = traderService.sellEquity(1, 4);
 			Assertions.assertEquals(expectedTrader, actualTrader);
-//			Assertions.assertEquals(NullPointerException.class, traderService.sellEquity(1, 5));
 		}
 	}
 
@@ -151,9 +151,20 @@ public class TraderServiceTest {
 		Assertions.assertEquals(false, BrokerUtils.isWeekday(today));
 		today = LocalDate.parse("2021-12-26");
 		Assertions.assertEquals(false, BrokerUtils.isWeekday(today));
+		today = LocalDate.parse("2021-12-24");
+		Assertions.assertEquals(true, BrokerUtils.isWeekday(today));
+
+		Boolean res = BrokerUtils.timeAndDayCheck();
+		today = LocalDate.now();
+		LocalTime target = LocalTime.now();
+		if ((target.isAfter(LocalTime.parse(startTime)) && target.isBefore(LocalTime.parse(endTime)))) {
+			Assertions.assertEquals(true, res);
+		} else {
+			Assertions.assertEquals(false, res);
+		}
 	}
 
-	@DisplayName("Test Fund")
+	@DisplayName("Test adding Funds")
 	@Test
 	public void testAddFund() {
 		int prevFnd = 20;
@@ -170,8 +181,10 @@ public class TraderServiceTest {
 	public void testForTraderNotFound() {
 		Mockito.when(traderRepo.findById((long) 1)).thenReturn(Optional.empty());
 		Assertions.assertThrows(RecordNotFoundException.class, () -> traderService.addFunds(1, 4));
-
-		Assertions.assertThrows(RecordNotFoundException.class, () -> traderService.buyEquity(1, 4));
+		try (MockedStatic<BrokerUtils> utilites = Mockito.mockStatic(BrokerUtils.class)) {
+			utilites.when(BrokerUtils::timeAndDayCheck).thenReturn(true);
+			Assertions.assertThrows(RecordNotFoundException.class, () -> traderService.buyEquity(1, 4));
+		}
 	}
 
 }
